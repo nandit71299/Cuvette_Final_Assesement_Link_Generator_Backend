@@ -16,6 +16,7 @@ const linksSchema = new mongoose.Schema({
   },
   remarks: {
     type: String,
+    required: true,
   },
   linkExpiration: {
     type: Date,
@@ -27,6 +28,11 @@ const linksSchema = new mongoose.Schema({
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
+    required: true,
+  },
+  isActive: {
+    type: Boolean,
+    default: true,
   },
 });
 

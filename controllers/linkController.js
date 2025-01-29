@@ -16,7 +16,7 @@ const generateLink = async (req, res) => {
       linkHash: hash,
       remarks,
       expirationDate,
-      createdBy: user._id,
+      createdBy: user.id,
     });
     await link.save();
     res.status(201).json({ success: true, data: link });
@@ -30,7 +30,7 @@ const getLink = async (req, res) => {
   try {
     const { hash } = req.params;
     const link = await Links.findOne({ linkHash: hash });
-    console.log(link);
+
     if (!link) {
       return res
         .status(404)
@@ -52,11 +52,67 @@ const getLink = async (req, res) => {
     link.clickCount += 1;
 
     await link.save();
-    res.redirect(link.originalUrl);
+    res.redirect(301, link.originalUrl);
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
-module.exports = { generateLink, getLink };
+const getAll = async (req, res) => {
+  try {
+    const user = req.user;
+
+    const links = await Links.find({ createdBy: user.id });
+    res.json({ success: true, data: links });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+const deleteLink = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = req.user;
+
+    const link = await Links.findOne({ _id: id, createdBy: user.id });
+    if (!link) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Link not found" });
+    }
+    await Links.deleteOne({ _id: link._id, createdBy: user.id });
+    res.json({ success: true, message: "Link deleted" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+const updateLink = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = req.user;
+    const { originalUrl, remarks, expirationDate } = req.body;
+
+    const link = await Links.findOne({ _id: id, createdBy: user.id });
+    if (!link) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Link not found" });
+    }
+
+    link.originalUrl = originalUrl;
+    link.remarks = remarks;
+    link.expirationDate = expirationDate;
+
+    await link.save();
+    res.json({ success: true, message: "Link updated" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+module.exports = { generateLink, getLink, getAll, deleteLink, updateLink };
