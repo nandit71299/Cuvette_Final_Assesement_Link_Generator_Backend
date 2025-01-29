@@ -52,7 +52,7 @@ const getLink = async (req, res) => {
     link.clickCount += 1;
 
     await link.save();
-    res.redirect(301, link.originalUrl);
+    res.json({ success: true, link: link.originalUrl });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: "Internal server error" });
