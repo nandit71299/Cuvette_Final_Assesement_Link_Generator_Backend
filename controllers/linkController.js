@@ -36,10 +36,11 @@ const getLink = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Link not found" });
     }
+
     if (link.linkExpiration && link.linkExpiration < new Date()) {
       return res
         .status(403)
-        .json({ success: false, message: "Link has expired" });
+        .json({ success: false, message: "Link has expired or is expired" });
     }
 
     await Analytics.create({
@@ -63,7 +64,37 @@ const getAll = async (req, res) => {
   try {
     const user = req.user;
 
+    // Query for all links created by the current user
     const links = await Links.find({ createdBy: user.id });
+
+    // Get the current date and time for comparison
+    const currentDate = new Date();
+
+    // Initialize an array to store the expired link ids
+    const expiredLinkIds = [];
+
+    // Check each link's expiration date
+    links.forEach(async (link) => {
+      if (
+        link.linkExpiration &&
+        link.linkExpiration < currentDate &&
+        link.isActive
+      ) {
+        // If the link has expired and is still active, mark it as inactive
+        link.isActive = false;
+
+        // Push the link id to the expiredLinkIds array to save all updates at once
+        expiredLinkIds.push(link._id);
+
+        // Save the link
+        await link.save();
+      }
+    });
+
+    // Optionally, you can log the expired links
+    console.log(`Marked ${expiredLinkIds.length} links as inactive.`);
+
+    // Send the response with the links (including any updates)
     res.json({ success: true, data: links });
   } catch (error) {
     console.log(error);
@@ -96,6 +127,20 @@ const updateLink = async (req, res) => {
     const user = req.user;
     const { originalUrl, remarks, expirationDate } = req.body;
 
+    // Ensure expirationDate is a valid Date
+    const expirationDateObject = expirationDate
+      ? new Date(expirationDate)
+      : null;
+
+    // Check if expirationDate is in the past
+    if (expirationDateObject && expirationDateObject < new Date()) {
+      return res.status(400).json({
+        success: false,
+        message: "Expiration date cannot be in the past.",
+      });
+    }
+
+    // Find the link by ID and createdBy user
     const link = await Links.findOne({ _id: id, createdBy: user.id });
     if (!link) {
       return res
@@ -103,14 +148,30 @@ const updateLink = async (req, res) => {
         .json({ success: false, message: "Link not found" });
     }
 
-    link.originalUrl = originalUrl;
-    link.remarks = remarks;
-    link.expirationDate = expirationDate;
+    // Update link properties
+    link.originalUrl = originalUrl || link.originalUrl; // Only update if new value is provided
+    link.remarks = remarks || link.remarks; // Only update if new value is provided
+    link.linkExpiration = expirationDateObject || link.linkExpiration; // Update expiration date if provided
 
+    // Set isActive to true if expirationDate is in the future
+    if (expirationDateObject && expirationDateObject > new Date()) {
+      link.isActive = true;
+    } else if (!expirationDateObject) {
+      link.isActive = true; // If no expiration date is set, the link is active
+    } else {
+      link.isActive = false; // If the expiration date is in the past, make it inactive
+    }
+
+    // Save the updated link
     await link.save();
-    res.json({ success: true, message: "Link updated" });
+
+    res.json({
+      success: true,
+      message: "Link updated successfully",
+      data: link, // Optionally return the updated link
+    });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

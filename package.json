@@ -19,6 +19,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
     "nanoid": "^5.0.9",
-    "nanoid-esm": "^2.1.0-esm.4"
+    "nanoid-esm": "^2.1.0-esm.4",
+    "node-schedule": "^2.1.1"
   }
 }

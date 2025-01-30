@@ -6,6 +6,7 @@ const port = process.env.PORT;
 const routes = require("./routes/index");
 const dbConfig = require("./config/dbConfig");
 const cors = require("cors");
+const scheduler = require("./config/scheduler");
 
 app.get("/", (req, res) => res.send("Hello World!"));
 
