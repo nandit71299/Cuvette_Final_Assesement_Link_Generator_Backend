@@ -86,4 +86,48 @@ const verification = async (req, res) => {
   }
 };
 
-module.exports = { login, register, verification };
+const updateUser = (req, res) => {
+  try {
+    const user = req.user;
+    const { name, email, mobile } = req.body;
+    const updatedUser = {
+      name,
+      email,
+      mobile,
+    };
+    User.findByIdAndUpdate(user.id, updatedUser, { new: true })
+      .then((updatedUser) => {
+        res.json({
+          success: true,
+          message: "User updated successfully",
+          user: updatedUser,
+        });
+      })
+      .catch((err) => {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Server error" });
+      });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+const deleteUser = (req, res) => {
+  try {
+    const user = req.user;
+    User.findByIdAndDelete(user.id)
+      .then(() => {
+        res.json({ success: true, message: "User deleted successfully" });
+      })
+      .catch((err) => {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Server error" });
+      });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+module.exports = { login, register, verification, updateUser, deleteUser };
