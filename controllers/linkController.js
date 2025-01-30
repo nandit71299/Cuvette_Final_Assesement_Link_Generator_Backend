@@ -48,9 +48,14 @@ const getLink = async (req, res) => {
     }
     const device = deviceDetector.parse(req.headers["user-agent"]);
 
+    // Check for X-Forwarded-For header first, then fallback to req.socket.remoteAddress
+    const ipAddress = req.headers["x-forwarded-for"]
+      ? req.headers["x-forwarded-for"].split(",")[0] // get the first IP in the chain
+      : req.socket.remoteAddress;
+
     await Analytics.create({
       linkId: link._id,
-      ipAddress: req.socket.remoteAddress,
+      ipAddress,
       deviceInfo: device.os.name,
       timestamp: new Date().toLocaleDateString(),
     });
