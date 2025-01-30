@@ -6,6 +6,10 @@ const dotenv = require("dotenv");
 const Os = require("os");
 dotenv.config();
 
+const DeviceDetector = require("device-detector-js");
+
+const deviceDetector = new DeviceDetector();
+
 const generateLink = async (req, res) => {
   try {
     const { originalUrl, remarks, expirationDate } = req.body;
@@ -42,11 +46,12 @@ const getLink = async (req, res) => {
         .status(403)
         .json({ success: false, message: "Link has expired or is expired" });
     }
+    const device = deviceDetector.parse(req.headers["user-agent"]);
 
     await Analytics.create({
       linkId: link._id,
       ipAddress: req.ip,
-      deviceInfo: Os.type(),
+      deviceInfo: device.os.name,
       timestamp: new Date().toLocaleDateString(),
     });
 
