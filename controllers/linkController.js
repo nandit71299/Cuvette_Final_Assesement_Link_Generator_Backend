@@ -44,7 +44,10 @@ const getLink = async (req, res) => {
     if (link.linkExpiration && link.linkExpiration < new Date()) {
       return res
         .status(403)
-        .json({ success: false, message: "Link has expired or is expired" });
+        .json({
+          success: false,
+          message: "Link has been deleted or is expired",
+        });
     }
     const device = deviceDetector.parse(req.headers["user-agent"]);
 

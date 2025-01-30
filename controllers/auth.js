@@ -11,13 +11,13 @@ const login = async (req, res) => {
     if (!user) {
       return res
         .status(401)
-        .json({ success: false, message: "Invalid email or password" });
+        .json({ success: false, error: "Invalid email or password" });
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res
         .status(401)
-        .json({ success: false, message: "Invalid email or password" });
+        .json({ success: false, error: "Invalid email or password" });
     }
     const token = jwt.sign(
       { id: user._id, email: user.email },
@@ -29,7 +29,7 @@ const login = async (req, res) => {
     res.json({ success: true, token, user });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({ success: false, error: "Server error" });
   }
 };
 
@@ -41,7 +41,7 @@ const register = async (req, res) => {
     if (user) {
       return res
         .status(400)
-        .json({ success: false, message: "User already exists" });
+        .json({ success: false, error: "User already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(
@@ -61,7 +61,7 @@ const register = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({ success: false, error: "Server error" });
   }
 };
 
@@ -71,9 +71,7 @@ const verification = async (req, res) => {
 
     const findUser = await User.findById(user.id);
     if (!findUser) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
+      return res.status(404).json({ success: false, error: "User not found" });
     }
     return res.json({
       success: true,
@@ -82,7 +80,7 @@ const verification = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({ success: false, error: "Server error" });
   }
 };
 
@@ -105,11 +103,11 @@ const updateUser = (req, res) => {
       })
       .catch((err) => {
         console.error(err);
-        res.status(500).json({ success: false, message: "Server error" });
+        res.status(500).json({ success: false, error: "Server error" });
       });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({ success: false, error: "Server error" });
   }
 };
 
@@ -122,11 +120,11 @@ const deleteUser = (req, res) => {
       })
       .catch((err) => {
         console.error(err);
-        res.status(500).json({ success: false, message: "Server error" });
+        res.status(500).json({ success: false, error: "Server error" });
       });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({ success: false, error: "Server error" });
   }
 };
 
