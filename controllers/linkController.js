@@ -50,7 +50,7 @@ const getLink = async (req, res) => {
 
     await Analytics.create({
       linkId: link._id,
-      ipAddress: req.ip,
+      ipAddress: req.socket.remoteAddress,
       deviceInfo: device.os.name,
       timestamp: new Date().toLocaleDateString(),
     });
